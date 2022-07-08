@@ -1,0 +1,36 @@
+body {
+  font-family: sans-serif;
+  margin: 4rem;
+  margin-top: 1rem;
+}
+
+.content {
+  display: inline;
+}
+
+.paragraph {
+  margin-bottom: 10px;
+  line-height: 1.5rem;
+  text-align: justify;
+}
+
+.paragraph.q:nth-child(2n + 1) {
+  /* background-color: magenta; */
+  margin-bottom: 4px;
+}
+.paragraph.q:nth-child(2n + 2) {
+  margin-left: 20px;
+  margin-bottom: 4px;
+}
+
+.verses {
+  font-size: 75%;
+  font-weight: 600;
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.chapter {
+  font-size: 200%;
+  font-weight: 600;
+}

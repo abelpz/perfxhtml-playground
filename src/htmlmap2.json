@@ -1,0 +1,17 @@
+{
+  "*": {
+    "*": {
+      "classList": "mapped"
+    },
+    "usfm:p": {
+      "tagName": "p",
+      "classList": ["paragraph", "p"]
+    }
+  },
+  "sequence": {
+    "*": {
+      "tagName": "p",
+      "classList": "sequence"
+    }
+  }
+}
