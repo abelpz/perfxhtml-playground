@@ -12429,7 +12429,7 @@
     },
     "MTdiZmQ4NmEt": {
       "type": "note_caller",
-      "blocks": [
+      "title": [
         {
           "type": "paragraph",
           "sub_type": "usfm:x",

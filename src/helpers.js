@@ -23,13 +23,13 @@ export const createElement = (
   },
   htmlAttrsMap
 ) =>
-  `<${tagName} ${
+  `<${tagName || "div"} ${
     classList && Array.isArray(classList)
       ? `class="${classList.join(" ")}"`
       : `class="${classList}"`
   } ${id && `id="${id}"`} ${getAttributesHtml(props)} ${getDatasetHtml(
     dataset
-  )}>${children}</${tagName}>`;
+  )}>${children}</${tagName || "div"}>`;
 
 export const tagNameMap = ({
   type,
@@ -44,6 +44,27 @@ export const tagNameMap = ({
 
 export const classNameMap = ({ classList, htmlMap: { className } }) =>
   classList.map((value) => className?.[value] ?? value);
+
+export const mapHtml = ({ type, subType, htmlMap }) => {
+  const maps = [
+    htmlMap[type]?.[subType],
+    htmlMap["*"]?.[subType],
+    htmlMap[type]?.["*"],
+    htmlMap["*"]?.["*"]
+  ];
+
+  const getClassList = (classList) => classList && (Array.isArray(classList) ? classList : [classList]); 
+  const result = maps.reduce((result, map) => {
+    result.classList = result.classList.concat(getClassList(map?.classList) || []);
+    if (!result.tagName && map?.tagName) result.tagName = map.tagName;
+    return result;
+  }, { classList: [], tagName: "" });
+
+  return {
+    classList: result.classList.length ? [...new Set(result.classList)] : [...(type ? [type] : []), ...(subType ? [subType.replace(":"," ")] : [])],
+    tagName: result.tagName
+  }
+}
 
 export const getBooleanProps = (props) =>
   !!props ? Object.keys(props).filter((key) => props[key] === true) : [];
