@@ -60,5 +60,6 @@ const renderPerf = (perfDocument) => {
     .parseFromString(perfHtml.sequencesHtml[sequenceId], "text/html")
     .querySelector(".sequence");
 
+  console.log(perfHtml);
   console.log(parsedSequence);
 };
