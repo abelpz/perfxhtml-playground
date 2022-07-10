@@ -34,3 +34,9 @@ body {
   font-size: 200%;
   font-weight: 600;
 }
+
+#documents {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}

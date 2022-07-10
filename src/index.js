@@ -1,19 +1,31 @@
 import "./styles.css";
-import perf2html from "./perf2html";
-import html2perf from "./html2perf";
+import PerfXDom from "./libs/perfxdom";
+import PerfXHtml from "./libs/perfxhtml";
 import isEqual from "lodash.isequal";
+import deepSort from "deep-sort-object";
+
 
 import marcDoc from "./perf/mrk_perf.json";
 import psalmsDoc from "./perf/psa_perf_v0.2.0.json";
 
+const perfxdom = new PerfXDom({docSetId:"id"});
+perfxdom.sideloadPerf("MRK",marcDoc);
+perfxdom.sideloadPerf("PSA",psalmsDoc);
+
+const perfxhtml = new PerfXHtml({docSetId:"id"});
+perfxhtml.sideloadPerf("MRK",marcDoc);
+perfxhtml.sideloadPerf("PSA", psalmsDoc);
+
 const perfDocuments = {
   marc: {
     name: "Marc (fra - no alignment)",
-    doc: marcDoc
+    doc: marcDoc,
+    bookcode: "MRK"
   },
   psalms: {
     name: "Psalms (eng - with alignment)",
-    doc: psalmsDoc
+    doc: psalmsDoc,
+    bookcode: "PSA"
   }
 };
 
@@ -21,45 +33,49 @@ const nav = document.querySelector("nav#files");
 Object.keys(perfDocuments).forEach((doc) => {
   const button = document.createElement("button");
   button.innerHTML = perfDocuments[doc].name;
-  button.onclick = (e) => {
-    renderPerf(perfDocuments[doc].doc);
+  button.onclick = async (e) => {
+    const documentsContainer = document.getElementById("documents");
+    documentsContainer.innerHTML = "";
+    renderPerfDom(perfDocuments[doc]);
+    renderPerfHtml(perfDocuments[doc]);
   };
   nav.appendChild(button);
 });
 
-const renderPerf = (perfDocument) => {
-  document.getElementById("title").innerHTML =
-    perfDocument.metadata.document.toc;
-  console.time("Roundtrip time");
-  const sequenceId = perfDocument["main_sequence_id"];
-  const perfHtml = {
-    mainSequenceId: sequenceId,
-    schema: perfDocument.schema,
-    metadata: perfDocument.metadata,
-    sequencesHtml: Object.keys(perfDocument.sequences).reduce(
-      (sequences, seqId) => {
-        sequences[seqId] = perf2html(perfDocument, seqId);
-        return sequences;
-      },
-      {}
-    )
-  };
-  document.getElementById("book-content").innerHTML =
-    perfHtml.sequencesHtml[sequenceId];
+const renderPerfDom = async (doc) => {
+  console.time("PERF DOM TIME");
+  const perfDoc = doc.doc;
+  const documentsContainer = document.getElementById("documents");
+  const perfContainer = document.createElement("article");
+  const tag = document.createElement("span");
+  tag.innerHTML = "perfxdom";
+  const perfTitle = document.createElement("h1");
+  perfTitle.innerHTML = perfDoc.metadata.document.toc;
+  
+  const perfDom = await perfxdom.readHtml(doc.bookcode);
+  const sequenceId = perfDoc["main_sequence_id"];
+  perfContainer.append(perfDom.sequencesHtml[sequenceId]);
+  perfContainer.prepend(perfTitle);
+  perfContainer.prepend(tag);
+  documentsContainer.appendChild(perfContainer);
+  if(perfDom) console.timeEnd("PERF DOM TIME");
+}
 
-  const htmlPerf = html2perf(perfHtml, sequenceId);
-  console.log(
-    isEqual(htmlPerf, perfDocument.sequences[sequenceId])
-      ? "Roundtrip succeeded"
-      : "Rountrip failed"
-  );
-
-  if (htmlPerf) console.timeEnd("Roundtrip time");
-
-  const parsedSequence = new DOMParser()
-    .parseFromString(perfHtml.sequencesHtml[sequenceId], "text/html")
-    .querySelector(".sequence");
-
-  console.log(perfHtml);
-  console.log(parsedSequence);
-};
+const renderPerfHtml = async (doc) => {
+  console.time("PERF HTML TIME");
+  const perfDoc = doc.doc;
+  const documentsContainer = document.getElementById("documents");
+  const perfContainer = document.createElement("article");
+  const tag = document.createElement("span");
+  tag.innerHTML = "perfxhtml";
+  const perfTitle = document.createElement("h1");
+  perfTitle.innerHTML = perfDoc.metadata.document.toc;
+  
+  const perfHtml = await perfxhtml.readHtml(doc.bookcode);
+  const sequenceId = perfDoc["main_sequence_id"];
+  perfContainer.innerHTML = (perfHtml.sequencesHtml[sequenceId]);
+  perfContainer.prepend(perfTitle);
+  perfContainer.prepend(tag);
+  documentsContainer.appendChild(perfContainer);
+  if(perfHtml) console.timeEnd("PERF HTML TIME");
+}

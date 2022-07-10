@@ -1,0 +1,20 @@
+{
+  "*": {
+    "*": {
+      "tagName": "span"
+    },
+    "sequence":{
+      "tagName": "section"
+    }
+  },
+  "paragraph": {
+    "*": {
+      "tagName": "p"
+    }
+  },
+  "mark": {
+    "*": {
+      "tagName": "span"
+    }
+  }
+}

@@ -8,6 +8,8 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
+    "deep-sort-object": "^1.0.2",
+    "epitelete": "^0.2.0",
     "js-beautify": "1.14.4",
     "lodash.isequal": "4.5.0",
     "node-html-parser": "5.3.3",
