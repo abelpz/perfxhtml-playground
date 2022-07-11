@@ -65,9 +65,10 @@ const blockFrom = (node) => {
 
 const getBlock = (node) => {
   const props = getProps(node);
+  const defaultContent = ["paragraph"].includes(props.type) && { content: [] };
   return {
     ...props,
-    ...(node.childNodes.length && blockFrom(node))
+    ...(node.childNodes.length ? blockFrom(node) : defaultContent)
   };
 };
 
@@ -76,7 +77,6 @@ const getBlocksFrom = ({children: nodes}) => Array.from(nodes, (node) => getBloc
 function dom2perf(perfHtml, sequenceId) {
   const sequenceElement = perfHtml.sequencesHtml[sequenceId];
   const props = getDataset(sequenceElement);
-
   return {
     ...props,
     blocks: getBlocksFrom(sequenceElement)

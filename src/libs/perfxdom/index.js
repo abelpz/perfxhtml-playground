@@ -36,8 +36,8 @@ class EpiteletePerfHtml extends Epitelete {
     }
 
     async writeHtml(bookCode,sequenceId,perfHtml) {
-        const perf = dom2perf(perfHtml, sequenceId);
-        await this.writePerf(bookCode,sequenceId,perf);
+        const perfSequence = dom2perf(perfHtml, sequenceId);
+        await this.writePerf(bookCode,sequenceId,perfSequence);
         return await this.readHtml(bookCode);
     }
 

@@ -2,6 +2,7 @@ import "./styles.css";
 import PerfXDom from "./libs/perfxdom";
 import PerfXHtml from "./libs/perfxhtml";
 import isEqual from "lodash.isequal";
+import deepSort from "deep-sort-object"
 
 import marcDoc from "./perf/mrk_perf.json";
 import psalmsDoc from "./perf/psa_perf_v0.2.0.json";
@@ -65,20 +66,18 @@ const renderPerf = async (doc, type) => {
 
   const mainSequence = perfResult.sequencesHtml[sequenceId];
 
-  if (type === "html") {
+  if (type === "html")
     textContainer.innerHTML = mainSequence;
-  } else {
+  else
     textContainer.append(mainSequence);
-  }
 
   if (perfResult) console.timeEnd("PERF DOM TIME");
 
-  // console.log(perfDoc.sequences[sequenceId].blocks[51]);
   const newPerf = type === "html"
-    ? await perfxhtml.writeHtml(doc.bookcode,sequenceId,perfResult).then(async () => await perfxhtml.readPerf(doc.bookcode))
-    : await perfxdom.writeHtml(doc.bookcode, sequenceId, perfResult).then(async () => await perfxhtml.readPerf(doc.bookcode));
+    ? await perfxhtml.writeHtml(doc.bookcode,sequenceId,perfResult)
+    : await perfxdom.writeHtml(doc.bookcode, sequenceId, perfResult);
   
-  console.log({successfulRoundtrip: isEqual(perfDoc, newPerf)});
+  console.log({ successfulRoundtrip: isEqual(mainSequence.outerHTML, newPerf.sequencesHtml[sequenceId].outerHTML) });
 
   textContainer.prepend(perfTitle);
   const tag = document.createElement("span");
