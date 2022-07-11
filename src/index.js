@@ -2,10 +2,7 @@ import "./styles.css";
 import PerfXDom from "./libs/perfxdom";
 import PerfXHtml from "./libs/perfxhtml";
 import Prism from 'prismjs';
-
-// import isEqual from "lodash.isequal";
-// import deepSort from "deep-sort-object";
-import beautify from "js-beautify";
+import isEqual from "lodash.isequal";
 
 import marcDoc from "./perf/mrk_perf.json";
 import psalmsDoc from "./perf/psa_perf_v0.2.0.json";
@@ -42,24 +39,9 @@ Object.keys(perfDocuments).forEach((doc) => {
     documentsContainer.innerHTML = "";
     renderPerf(perfDocuments[doc], "dom");
     renderPerf(perfDocuments[doc], "html");
-    // renderPerf(perfDocuments[doc], "html");
   };
   nav.appendChild(button);
 });
-
-const createCodeElement = (className, lang) => {
-  const codeContainer = document.createElement('div');
-  const codePre = document.createElement('pre');
-  const codeContent = document.createElement('code');
-  codePre.className = `line-numbers language-${lang}`;
-  codeContent.className = `language-${lang}`;
-  codeContainer.className = className;
-  codeContainer.id = "code-container";
-  codeContainer.appendChild(codePre);
-  codePre.appendChild(codeContent);
-
-  return {codeContainer,codeContent,codePre};
-}
 
 const renderPerf = async (doc, type) => {
   const allowedTypes = ["html", "dom"];
@@ -73,12 +55,6 @@ const renderPerf = async (doc, type) => {
   const resultsContainer = document.createElement('div');
   resultsContainer.className = "results-container";
   documentsContainer.appendChild(resultsContainer);
-
-  // const { codeContainer: jsonContainer, codeContent: jsonCodeEL, codePre: jsonPre } = createCodeElement("code-perf", "json");
-  // const docJson = JSON.stringify({ [sequenceId]: perfDoc.sequences[sequenceId] }, undefined, 1);
-  // jsonCodeEL.innerText = docJson;
-  // Prism.highlightElement(jsonPre);
-  // resultsContainer.appendChild(jsonContainer);
 
   console.time("PERF DOM TIME");
   const textContainer = document.createElement("article");
@@ -100,6 +76,12 @@ const renderPerf = async (doc, type) => {
 
   if (perfResult) console.timeEnd("PERF DOM TIME");
 
+  const newPerf = type === "html"
+    ? await perfxhtml.writeHtml(doc.bookcode,sequenceId,perfResult)
+    : await perfxdom.writeHtml(doc.bookcode, sequenceId, perfResult);
+  
+  console.log({successfulRoundtrip: isEqual(perfResult, newPerf)});
+
   textContainer.prepend(perfTitle);
   const tag = document.createElement("span");
   tag.innerHTML = `perfx${type}`;
@@ -107,10 +89,4 @@ const renderPerf = async (doc, type) => {
   resultsContainer.appendChild(textContainer);
 
   console.log(`perfx${type}`,{ mainSequence });
-  // const { codeContainer: htmlContainer, codeContent: htmlCodeEL, codePre: htmlPre }  = createCodeElement("code-perf", "markup");
-  // const docHtml = beautify.html(type === "html" ? mainSequence : mainSequence.outerHTML);
-  // console.log(docHtml);
-  // htmlCodeEL.innerText = docHtml;
-  // Prism.highlightElement(htmlPre);
-  // resultsContainer.appendChild(htmlContainer);
 }
