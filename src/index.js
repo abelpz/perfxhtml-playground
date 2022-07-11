@@ -1,12 +1,16 @@
 import "./styles.css";
 import PerfXDom from "./libs/perfxdom";
 import PerfXHtml from "./libs/perfxhtml";
-import isEqual from "lodash.isequal";
-import deepSort from "deep-sort-object";
+import Prism from 'prismjs';
 
+// import isEqual from "lodash.isequal";
+// import deepSort from "deep-sort-object";
+import beautify from "js-beautify";
 
 import marcDoc from "./perf/mrk_perf.json";
 import psalmsDoc from "./perf/psa_perf_v0.2.0.json";
+
+Prism.manual = true;
 
 const perfxdom = new PerfXDom({docSetId:"id"});
 perfxdom.sideloadPerf("MRK",marcDoc);
@@ -36,46 +40,77 @@ Object.keys(perfDocuments).forEach((doc) => {
   button.onclick = async (e) => {
     const documentsContainer = document.getElementById("documents");
     documentsContainer.innerHTML = "";
-    renderPerfDom(perfDocuments[doc]);
-    renderPerfHtml(perfDocuments[doc]);
+    renderPerf(perfDocuments[doc], "dom");
+    renderPerf(perfDocuments[doc], "html");
+    // renderPerf(perfDocuments[doc], "html");
   };
   nav.appendChild(button);
 });
 
-const renderPerfDom = async (doc) => {
-  console.time("PERF DOM TIME");
-  const perfDoc = doc.doc;
-  const documentsContainer = document.getElementById("documents");
-  const perfContainer = document.createElement("article");
-  const tag = document.createElement("span");
-  tag.innerHTML = "perfxdom";
-  const perfTitle = document.createElement("h1");
-  perfTitle.innerHTML = perfDoc.metadata.document.toc;
-  
-  const perfDom = await perfxdom.readHtml(doc.bookcode);
-  const sequenceId = perfDoc["main_sequence_id"];
-  perfContainer.append(perfDom.sequencesHtml[sequenceId]);
-  perfContainer.prepend(perfTitle);
-  perfContainer.prepend(tag);
-  documentsContainer.appendChild(perfContainer);
-  if(perfDom) console.timeEnd("PERF DOM TIME");
+const createCodeElement = (className, lang) => {
+  const codeContainer = document.createElement('div');
+  const codePre = document.createElement('pre');
+  const codeContent = document.createElement('code');
+  codePre.className = `line-numbers language-${lang}`;
+  codeContent.className = `language-${lang}`;
+  codeContainer.className = className;
+  codeContainer.id = "code-container";
+  codeContainer.appendChild(codePre);
+  codePre.appendChild(codeContent);
+
+  return {codeContainer,codeContent,codePre};
 }
 
-const renderPerfHtml = async (doc) => {
-  console.time("PERF HTML TIME");
-  const perfDoc = doc.doc;
+const renderPerf = async (doc, type) => {
+  const allowedTypes = ["html", "dom"];
+  if (!allowedTypes.includes(type)) throw new Error("Invalid type");
+
   const documentsContainer = document.getElementById("documents");
-  const perfContainer = document.createElement("article");
-  const tag = document.createElement("span");
-  tag.innerHTML = "perfxhtml";
+
+  const perfDoc = doc.doc;
+  const sequenceId = perfDoc["main_sequence_id"];
+
+  const resultsContainer = document.createElement('div');
+  resultsContainer.className = "results-container";
+  documentsContainer.appendChild(resultsContainer);
+
+  // const { codeContainer: jsonContainer, codeContent: jsonCodeEL, codePre: jsonPre } = createCodeElement("code-perf", "json");
+  // const docJson = JSON.stringify({ [sequenceId]: perfDoc.sequences[sequenceId] }, undefined, 1);
+  // jsonCodeEL.innerText = docJson;
+  // Prism.highlightElement(jsonPre);
+  // resultsContainer.appendChild(jsonContainer);
+
+  console.time("PERF DOM TIME");
+  const textContainer = document.createElement("article");
+
   const perfTitle = document.createElement("h1");
   perfTitle.innerHTML = perfDoc.metadata.document.toc;
-  
-  const perfHtml = await perfxhtml.readHtml(doc.bookcode);
-  const sequenceId = perfDoc["main_sequence_id"];
-  perfContainer.innerHTML = (perfHtml.sequencesHtml[sequenceId]);
-  perfContainer.prepend(perfTitle);
-  perfContainer.prepend(tag);
-  documentsContainer.appendChild(perfContainer);
-  if(perfHtml) console.timeEnd("PERF HTML TIME");
+
+  const perfResult = type === "html"
+    ? await perfxhtml.readHtml(doc.bookcode)
+    : await perfxdom.readHtml(doc.bookcode);
+
+  const mainSequence = perfResult.sequencesHtml[sequenceId];
+
+  if (type === "html") {
+    textContainer.innerHTML = mainSequence;
+  } else {
+    textContainer.append(mainSequence);
+  }
+
+  if (perfResult) console.timeEnd("PERF DOM TIME");
+
+  textContainer.prepend(perfTitle);
+  const tag = document.createElement("span");
+  tag.innerHTML = `perfx${type}`;
+  textContainer.prepend(tag);
+  resultsContainer.appendChild(textContainer);
+
+  console.log(`perfx${type}`,{ mainSequence });
+  // const { codeContainer: htmlContainer, codeContent: htmlCodeEL, codePre: htmlPre }  = createCodeElement("code-perf", "markup");
+  // const docHtml = beautify.html(type === "html" ? mainSequence : mainSequence.outerHTML);
+  // console.log(docHtml);
+  // htmlCodeEL.innerText = docHtml;
+  // Prism.highlightElement(htmlPre);
+  // resultsContainer.appendChild(htmlContainer);
 }

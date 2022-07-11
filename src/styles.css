@@ -39,4 +39,26 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2em;
+  margin-top: 2em;
+}
+
+.results-container{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 1em;
+}
+.results-container > *{
+ max-height: 400px;
+ overflow:auto;
+}
+.results-container > article{
+  padding: 2em;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  box-shadow: 0px 5px 16px -5px #999999;
+}
+
+.results-container > article > span{
+  color: #6f6f6f;
+  text-decoration: underline;
 }
