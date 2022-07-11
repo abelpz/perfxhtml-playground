@@ -1,13 +1,10 @@
 import "./styles.css";
 import PerfXDom from "./libs/perfxdom";
 import PerfXHtml from "./libs/perfxhtml";
-import Prism from 'prismjs';
 import isEqual from "lodash.isequal";
 
 import marcDoc from "./perf/mrk_perf.json";
 import psalmsDoc from "./perf/psa_perf_v0.2.0.json";
-
-Prism.manual = true;
 
 const perfxdom = new PerfXDom({docSetId:"id"});
 perfxdom.sideloadPerf("MRK",marcDoc);
@@ -76,11 +73,12 @@ const renderPerf = async (doc, type) => {
 
   if (perfResult) console.timeEnd("PERF DOM TIME");
 
+  // console.log(perfDoc.sequences[sequenceId].blocks[51]);
   const newPerf = type === "html"
-    ? await perfxhtml.writeHtml(doc.bookcode,sequenceId,perfResult)
-    : await perfxdom.writeHtml(doc.bookcode, sequenceId, perfResult);
+    ? await perfxhtml.writeHtml(doc.bookcode,sequenceId,perfResult).then(async () => await perfxhtml.readPerf(doc.bookcode))
+    : await perfxdom.writeHtml(doc.bookcode, sequenceId, perfResult).then(async () => await perfxhtml.readPerf(doc.bookcode));
   
-  console.log({successfulRoundtrip: isEqual(perfResult, newPerf)});
+  console.log({successfulRoundtrip: isEqual(perfDoc, newPerf)});
 
   textContainer.prepend(perfTitle);
   const tag = document.createElement("span");
