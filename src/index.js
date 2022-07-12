@@ -35,13 +35,20 @@ Object.keys(perfDocuments).forEach((doc) => {
   button.onclick = async (e) => {
     const documentsContainer = document.getElementById("documents");
     documentsContainer.innerHTML = "";
-    renderPerf(perfDocuments[doc], "dom");
-    renderPerf(perfDocuments[doc], "html");
+    const domResult = await renderPerf(perfDocuments[doc], "dom");
+    const htmlResult = await renderPerf(perfDocuments[doc], "html");
+    console.log({ domResult, htmlResult });
+    console.log({equalResults: isEqual(domResult.outerHTML, htmlResult.outerHTML)})
   };
   nav.appendChild(button);
 });
 
 const renderPerf = async (doc, type) => {
+  const tagName = `perfx${type}`;
+  function log(content) {
+    console.log(tagName, content);
+  }
+
   const allowedTypes = ["html", "dom"];
   if (!allowedTypes.includes(type)) throw new Error("Invalid type");
 
@@ -66,24 +73,28 @@ const renderPerf = async (doc, type) => {
 
   const mainSequence = perfResult.sequencesHtml[sequenceId];
 
-  if (type === "html")
+  let result;
+  if (type === "html"){
     textContainer.innerHTML = mainSequence;
-  else
+    result = textContainer.firstChild;
+  }else{
     textContainer.append(mainSequence);
-
+    result = mainSequence;
+  }
+  
   if (perfResult) console.timeEnd("PERF DOM TIME");
 
   const newPerf = type === "html"
     ? await perfxhtml.writeHtml(doc.bookcode,sequenceId,perfResult)
     : await perfxdom.writeHtml(doc.bookcode, sequenceId, perfResult);
   
-  console.log({ successfulRoundtrip: isEqual(mainSequence.outerHTML, newPerf.sequencesHtml[sequenceId].outerHTML) });
+  log({ successfulRoundtrip: isEqual(mainSequence.outerHTML, newPerf.sequencesHtml[sequenceId].outerHTML) });
 
   textContainer.prepend(perfTitle);
   const tag = document.createElement("span");
-  tag.innerHTML = `perfx${type}`;
+  tag.innerHTML = tagName;
   textContainer.prepend(tag);
   resultsContainer.appendChild(textContainer);
 
-  console.log(`perfx${type}`,{ mainSequence });
+  return result;
 }
