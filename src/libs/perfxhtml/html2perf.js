@@ -115,8 +115,6 @@ const parseHtml = (html) =>
 function html2perf(perfHtml, sequenceId) {
   const sequencesHtml = parseHtml(perfHtml.sequencesHtml[sequenceId]);
   const sequenceElement = sequencesHtml.getElementById(sequenceId);
-  // const blocksContainer = sequenceElement.querySelector(".paragraph, .graft")
-    // .parentNode;
   const props = getDataset(sequenceElement);
 
   return {
